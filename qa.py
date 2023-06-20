@@ -60,6 +60,7 @@ docsearch = Chroma.from_texts(
 query = "What has been said about China?"
 docs = docsearch.get_relevant_documents(query)
 
+# %%
 # more complicated query - return descriptive paragraph with sources
 query = "What has the Secretary said about Ukraine?"
 
@@ -69,3 +70,5 @@ chain = RetrievalQAWithSourcesChain.from_chain_type(
 result = chain({"question": query})
 print(f"Answer: {result['answer']}")
 print(f"Sources: {result['sources']}")
+
+# %%

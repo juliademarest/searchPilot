@@ -14,7 +14,7 @@ header_dict = {
 all_remarks = []
 
 # iterate over the pages (20 is an arbitrary limit)
-for page_num in range(1, 20):
+for page_num in range(7, 20):
     # you know I love a print statement in the console
     print(f"Starting page {page_num}\n")
 
@@ -46,29 +46,31 @@ for page_num in range(1, 20):
         )
         page = BeautifulSoup(response.text, "html.parser")
 
-        # pull out core info, store in dict, append
-        try:
-            title = page.find("h1")
-            speaker = page.find(class_="article-meta__author-bureau")
-            audience = page.find(class_="article-meta__audience")
-            location = page.find(class_="article-meta__location")
-            date = page.find(class_="article-meta__publish-date")
-            content = page.find(class_="entry-content")
+        # elements we want to fetch
+        elements = {
+            "title": "featured-content__headline stars-above",
+            "speaker": "article-meta__author-bureau",
+            "audience": "article-meta__audience",
+            "location": "article-meta__location",
+            "date": "article-meta__publish-date",
+            "content": "entry-content",
+        }
 
-            remarks_data = {
-                "title": title.text,
-                "speaker": speaker.text,
-                "audience": audience.text,
-                "location": location.text,
-                "date": date.text,
-                "content": content.text,
-                "url": speech_link,
-            }
-            all_remarks.append(remarks_data)
-            print(f"Sucessfully fetched: {speech_link}")
+        # base dict for storing metadata
+        remarks_data = {
+            "url": speech_link,
+        }
 
-        except:
-            print(f"Failed for {speech_link}")
+        # try to find each metadata field in the html
+        for metadata_field in elements.keys():
+            try:
+                value = page.find(class_=elements[metadata_field])
+                remarks_data.update({metadata_field: value})
+            except:
+                print(f"Failed to find {metadata_field} for {speech_link}")
+
+        all_remarks.append(remarks_data)
+        print(f"Sucessfully fetched: {speech_link}")
 
         response.close()
 
@@ -80,6 +82,7 @@ for page_num in range(1, 20):
 
     print(f"Finished page {page_num}")
 
+# %%
 # write out
 with open("remarks_more.json", "w") as outfile:
     json.dump(all_remarks, outfile)
