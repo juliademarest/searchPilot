@@ -1,0 +1,5 @@
+langchain==0.0.202
+langchainplus-sdk==0.0.10
+chromadb==0.3.26
+hnswlib==0.7.0
+python-dotenv==1.0.0
