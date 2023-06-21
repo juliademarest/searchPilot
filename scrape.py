@@ -14,7 +14,7 @@ header_dict = {
 all_remarks = []
 
 # iterate over the pages (20 is an arbitrary limit)
-for page_num in range(7, 20):
+for page_num in range(9, 25):
     # you know I love a print statement in the console
     print(f"Starting page {page_num}\n")
 
@@ -65,7 +65,7 @@ for page_num in range(7, 20):
         for metadata_field in elements.keys():
             try:
                 value = page.find(class_=elements[metadata_field])
-                remarks_data.update({metadata_field: value})
+                remarks_data.update({metadata_field: value.text})
             except:
                 print(f"Failed to find {metadata_field} for {speech_link}")
 
@@ -81,8 +81,8 @@ for page_num in range(7, 20):
     sleep(10 + random.uniform(-0.25, 0.25))
 
     print(f"Finished page {page_num}")
+    with open(f"data/raw/remarks-page{page_num}.json", "w") as outfile:
+        json.dump(all_remarks, outfile)
 
 # %%
 # write out
-with open("remarks_more.json", "w") as outfile:
-    json.dump(all_remarks, outfile)

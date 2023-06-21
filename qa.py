@@ -17,7 +17,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # %%
 # load data - created in scrape.py
-with open("data/remarks.json", "r") as f:
+with open("data/clean/secretary-publicremarks.json", "r") as f:
     data = json.load(f)
 
 # pull out text splitter from langchain
@@ -28,8 +28,8 @@ texts = []
 expanded_dicts = []
 for remarks_dict in data:
     # split into paragraphs
-    text = remarks_dict["content"].split("\n")
-    del remarks_dict["content"]
+    text = remarks_dict["secretary"].split("\n")
+    del remarks_dict["secretary"]
 
     # for each paragraph
     for text_line in text:
@@ -51,24 +51,27 @@ for remarks_dict in data:
 
 # pull out OpenAI embeddings and create Chroma vector store of data with embeddings
 embeddings = OpenAIEmbeddings()
-docsearch = Chroma.from_texts(
-    texts, embeddings, metadatas=expanded_dicts
-).as_retriever()
+vectordb = Chroma.from_texts(texts, embeddings, metadatas=expanded_dicts)
+retriever = vectordb.as_retriever(search_kwargs={"k": 5})
 
 # %%
 # very simple example query - just return related docs
-query = "What has been said about China?"
-docs = docsearch.get_relevant_documents(query)
+query = "Assume all text is from public remarks by the Sectretary of State. What has the Secretary said about China?"
+docs = retriever.get_relevant_documents(query)
 
-# %%
+
 # more complicated query - return descriptive paragraph with sources
-query = "What has the Secretary said about Ukraine?"
+query = "What has the Secretary said about AI? Use quotes from the provided text in your response."
 
 chain = RetrievalQAWithSourcesChain.from_chain_type(
-    llm=ChatOpenAI(temperature=0), retriever=docsearch
+    llm=ChatOpenAI(temperature=0), retriever=retriever
 )
 result = chain({"question": query})
 print(f"Answer: {result['answer']}")
 print(f"Sources: {result['sources']}")
+
+# %%
+query = "technology and AI "
+docs = retriever.get_relevant_documents(query)
 
 # %%
