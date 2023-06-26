@@ -7,6 +7,8 @@ from langchain.vectorstores import Chroma
 from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQAWithSourcesChain
+from langchain.docstore.document import Document
+from langchain.chains.summarize import load_summarize_chain
 import json
 import os
 from dotenv import load_dotenv
@@ -50,16 +52,16 @@ for remarks_dict in data:
 # %%
 
 # pull out OpenAI embeddings and create Chroma vector store of data with embeddings
-embeddings = OpenAIEmbeddings()
-vectordb = Chroma.from_texts(texts, embeddings, metadatas=expanded_dicts)
+#embeddings = OpenAIEmbeddings()
+#vectordb = Chroma.from_texts(texts, embeddings, metadatas=expanded_dicts)
 retriever = vectordb.as_retriever(search_kwargs={"k": 5})
 
 # %%
 # very simple example query - just return related docs
-query = "Assume all text is from public remarks by the Sectretary of State. What has the Secretary said about China?"
+query = "Assume all text is from public remarks by the Secretary of State. What has the Secretary said about China?"
 docs = retriever.get_relevant_documents(query)
 
-
+#%%
 # more complicated query - return descriptive paragraph with sources
 query = "What has the Secretary said about AI? Use quotes from the provided text in your response."
 
@@ -71,7 +73,32 @@ print(f"Answer: {result['answer']}")
 print(f"Sources: {result['sources']}")
 
 # %%
+# Increasing complicated query - evaluate change over time
+# query = "Describe the differences between each speech given by the Secretary about AI"
+# query = "How does the Secretary describe the use of AI in other countries? Cite which countries he discusses."
+query = "How has the Secretary's view of AI changed over time?"
+chain = RetrievalQAWithSourcesChain.from_chain_type(
+    llm=ChatOpenAI(temperature=0), retriever=retriever
+)
+result = chain({"question": query})
+print(f"Answer: {result['answer']}")
+print(f"Sources: {result['sources']}")
+# %%
 query = "technology and AI "
 docs = retriever.get_relevant_documents(query)
 
 # %%
+# Testing summarization
+# Could probably move this into a separate script, but kept here
+# now to easily take advantage of the docs. Renamed to docs_summ
+# in order to not mess up the code above
+
+# Prep documents
+#TODO: picked 5, need to understand why
+docs_summ = [Document(page_content=t) for t in texts[:5]]
+llm = ChatOpenAI(temperature=0)
+
+# Get basic summary
+chain = load_summarize_chain(llm, chain_type="map_reduce")
+chain.run(docs_summ)
+#%%

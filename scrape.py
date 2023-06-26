@@ -4,7 +4,7 @@ from time import sleep
 import random
 import json
 from bs4 import BeautifulSoup
-
+#%%
 # need this header or the request gets blocked
 header_dict = {
     "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
@@ -86,3 +86,5 @@ for page_num in range(9, 25):
 
 # %%
 # write out
+
+# %%
